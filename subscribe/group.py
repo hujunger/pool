@@ -43,10 +43,10 @@ def filter_nodes(file_path):
         if test_connectivity(node):
             reachable_nodes.append(node)
     
-    with open('reachable_nodes.txt', 'w') as file:
-        file.write('\n'.join(reachable_nodes))
+    with open('collection.txt', 'w') as file:
+        file.write('\n'.join(collection))
 
-    print(f"可连接的节点已保存至 reachable_nodes.txt，共找到 {len(reachable_nodes)} 个节点。")
+    print(f"可连接的节点已保存至 collection.txt，共找到 {len(collection)} 个节点。")
 
 # 执行流程
 file_path = download_txt_file()
