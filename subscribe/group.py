@@ -1,6 +1,7 @@
 import os
 from telethon import TelegramClient
 import requests
+import asyncio
 import sys
 
 # 从环境变量中获取 API_ID, API_HASH 和 Bot Token
@@ -15,15 +16,12 @@ if not API_ID or not API_HASH or not BOT_TOKEN:
 
 CHANNEL_NAME = 'wangcai_8'
 
-# 初始化客户端并使用 Bot Token 启动
-client = TelegramClient('bot_session', api_id=API_ID, api_hash=API_HASH).start(bot_token=BOT_TOKEN)
-
 # 下载 TXT 文件
-def download_txt_file():
-    messages = client.get_messages(CHANNEL_NAME, limit=10)  # 获取最近10条消息
+async def download_txt_file(client):
+    messages = await client.get_messages(CHANNEL_NAME, limit=10)  # 获取最近10条消息
     for message in messages:
         if message.file and message.file.name.endswith('.txt'):
-            message.download_media(file='nodes.txt')
+            await message.download_media(file='nodes.txt')
             print("TXT 文件下载成功！")
             return 'nodes.txt'
     print("未找到 TXT 文件。")
@@ -53,10 +51,19 @@ def filter_nodes(file_path):
 
     print(f"可连接的节点已保存至 reachable_nodes.txt，共找到 {len(reachable_nodes)} 个节点。")
 
-# 执行流程
-file_path = download_txt_file()
-if file_path:
-    filter_nodes(file_path)
+# 主函数
+async def main():
+    # 初始化客户端并使用 Bot Token 启动
+    client = TelegramClient('bot_session', api_id=API_ID, api_hash=API_HASH)
+    await client.start(bot_token=BOT_TOKEN)
 
-# 断开客户端
-client.disconnect()
+    # 下载文件并筛选节点
+    file_path = await download_txt_file(client)
+    if file_path:
+        filter_nodes(file_path)
+
+    # 断开客户端
+    await client.disconnect()
+
+# 运行主函数
+asyncio.run(main())
