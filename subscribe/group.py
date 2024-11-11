@@ -2,12 +2,14 @@ import os
 from telethon import TelegramClient
 import requests
 
-# 从环境变量中获取 Bot Token
+# 从环境变量中获取 API_ID, API_HASH 和 Bot Token
+API_ID = int(os.getenv('TELEGRAM_API_ID'))
+API_HASH = os.getenv('TELEGRAM_API_HASH')
 BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 CHANNEL_NAME = 'wangcai_8'
 
-# 使用 Bot Token 初始化客户端
-client = TelegramClient('bot_session', api_id=0, api_hash='').start(bot_token=BOT_TOKEN)
+# 初始化客户端并使用 Bot Token 启动
+client = TelegramClient('bot_session', api_id=API_ID, api_hash=API_HASH).start(bot_token=BOT_TOKEN)
 
 # 下载 TXT 文件
 def download_txt_file():
