@@ -1,63 +1,57 @@
+import os
+from telethon import TelegramClient, sync
 import requests
-from telethon import TelegramClient, events, sync
-import re
 
-# Telegram API credentials
-api_id = 'YOUR_API_ID'
-api_hash = 'YOUR_API_HASH'
-group_username = 'wangcai_8'  # 公共群组的用户名（如 t.me/wangcai_8）
+# 从环境变量中获取 API_ID 和 API_HASH
+API_ID = os.getenv('TELEGRAM_API_ID')
+API_HASH = os.getenv('TELEGRAM_API_HASH')
+CHANNEL_NAME = 'wangcai_8'
 
-# 测试节点连通性的 URL
-TEST_URL = "https://www.gstatic.com/generate_204"
-TIMEOUT = 5  # 设置连接超时（秒）
+# 初始化客户端
+client = TelegramClient('session_name', API_ID, API_HASH)
 
-# 登录 Telegram
-client = TelegramClient('session_name', api_id, api_hash)
+# 连接到 Telegram
+client.start()
 
-def check_connectivity(ip_or_url):
-    """测试节点连通性，返回 True 表示连通，False 表示超时或连接失败"""
+# 下载 TXT 文件
+def download_txt_file():
+    messages = client.get_messages(CHANNEL_NAME, limit=10)  # 获取最近10条消息
+    for message in messages:
+        if message.file and message.file.name.endswith('.txt'):
+            message.download_media(file='nodes.txt')
+            print("TXT 文件下载成功！")
+            return 'nodes.txt'
+    print("未找到 TXT 文件。")
+    return None
+
+# 测试连通性
+def test_connectivity(url):
     try:
-        response = requests.get(TEST_URL, timeout=TIMEOUT)
-        return response.status_code == 204  # 检查是否返回204状态码，表示无内容
+        response = requests.get(url, timeout=3)
+        return response.status_code == 204
     except requests.RequestException:
         return False
 
-def save_valid_nodes(file_path, valid_nodes):
-    """将有效节点保存到文件中"""
-    with open(file_path, 'w') as file:
-        for node in valid_nodes:
-            file.write(node + "\n")
+# 解析文件并筛选可连通的节点
+def filter_nodes(file_path):
+    with open(file_path, 'r') as file:
+        nodes = file.readlines()
 
-def main():
-    with client:
-        # 查找群组的消息
-        messages = client.get_messages(group_username, limit=100)  # 获取最近100条消息
-        valid_nodes = []
+    reachable_nodes = []
+    for node in nodes:
+        node = node.strip()
+        if test_connectivity(node):
+            reachable_nodes.append(node)
+    
+    with open('reachable_nodes.txt', 'w') as file:
+        file.write('\n'.join(reachable_nodes))
 
-        for message in messages:
-            if message.file and message.file.name.endswith('.txt'):
-                # 下载 TXT 文件
-                file_path = client.download_media(message, file="downloaded_nodes.txt")
-                print(f"下载的文件路径: {file_path}")
+    print(f"可连接的节点已保存至 reachable_nodes.txt，共找到 {len(reachable_nodes)} 个节点。")
 
-                # 读取文件内容并测试连通性
-                with open(file_path, 'r') as file:
-                    nodes = file.read().splitlines()
-                    for node in nodes:
-                        if check_connectivity(node):
-                            valid_nodes.append(node)
-                            print(f"节点 {node} 可达")
-                        else:
-                            print(f"节点 {node} 超时或不可达")
+# 执行流程
+file_path = download_txt_file()
+if file_path:
+    filter_nodes(file_path)
 
-                # 保存有效节点到文件
-                save_valid_nodes("valid_nodes.txt", valid_nodes)
-                print("测试完成，有效节点已保存到 valid_nodes.txt")
-                break
-        else:
-            print("未找到任何 TXT 文件")
-
-# 启动脚本
-if __name__ == "__main__":
-    client.start()
-    main()
+# 断开客户端
+client.disconnect()
