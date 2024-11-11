@@ -1,0 +1,29 @@
+name: group
+
+on:
+  workflow_dispatch:  # 手动触发
+  schedule:
+    - cron: '1 * * * *'  # 每小时运行一次
+
+jobs:
+  test-connectivity:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: 安装 Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: 安装环境
+        run: |
+          pip install telethon requests
+
+      - name: 运行脚本
+        env:
+          TELEGRAM_API_ID: ${{ secrets.TELEGRAM_API_ID }}
+          TELEGRAM_API_HASH: ${{ secrets.TELEGRAM_API_HASH }}
+        run: |
+          python scribe/group.py
