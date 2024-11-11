@@ -1,11 +1,18 @@
 import os
 from telethon import TelegramClient
 import requests
+import sys
 
 # 从环境变量中获取 API_ID, API_HASH 和 Bot Token
-API_ID = int(os.getenv('TELEGRAM_API_ID'))
+API_ID = os.getenv('TELEGRAM_API_ID')
 API_HASH = os.getenv('TELEGRAM_API_HASH')
 BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+
+# 检查环境变量是否正确加载
+if not API_ID or not API_HASH or not BOT_TOKEN:
+    print("Error: Missing one of TELEGRAM_API_ID, TELEGRAM_API_HASH, or TELEGRAM_BOT_TOKEN.")
+    sys.exit(1)
+
 CHANNEL_NAME = 'wangcai_8'
 
 # 初始化客户端并使用 Bot Token 启动
