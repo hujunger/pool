@@ -1,5 +1,5 @@
 import os
-from telethon import TelegramClient, sync
+from telethon import TelegramClient
 import requests
 
 # 从环境变量中获取 Bot Token
@@ -7,10 +7,7 @@ BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 CHANNEL_NAME = 'wangcai_8'
 
 # 使用 Bot Token 初始化客户端
-client = TelegramClient('bot_session', api_id=0, api_hash='', bot_token=BOT_TOKEN)
-
-# 连接到 Telegram
-client.start()
+client = TelegramClient('bot_session', api_id=0, api_hash='').start(bot_token=BOT_TOKEN)
 
 # 下载 TXT 文件
 def download_txt_file():
@@ -41,7 +38,7 @@ def filter_nodes(file_path):
         node = node.strip()
         if test_connectivity(node):
             reachable_nodes.append(node)
-    
+
     with open('reachable_nodes.txt', 'w') as file:
         file.write('\n'.join(reachable_nodes))
 
